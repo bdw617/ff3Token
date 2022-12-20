@@ -23,4 +23,4 @@ jobs:
       - name: Coverage output
         run: go tool cover -func cover.out
         with:
-          filename: cover.out
+          filename: coverage.out
