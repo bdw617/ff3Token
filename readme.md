@@ -1,12 +1,15 @@
-ff3Tokens!
+![GitHub CI](https://github.com/bdw666/ff3Token/actions/workflows/go.yaml/badge.svg)
+[![Go Reference](https://pkg.go.dev/badge/github.com/bdw666/ff3Token.svg)](https://pkg.go.dev/github.com/bdw666/ff3Token)
 
-# disclaimer
+#ff3Tokens!
+
+## disclaimer
 This is NOT general purpose cryptography, the data to be encrypted with this algorithm is one of many things good engineering should do to properly secure user data. I'm not a cryptographerm and have no experience with crytoanalysis. If you choose to follow this pattern, that's exciting, please let me know! Please do it with the proper experts to review your design (I probably should use the apache license for this, you know, AS IS). 
 
-# note on FF3
+## note on FF3
 FF3-1 would have been the prefered algorithm but there's no open source in Golang I can find, Hashicorp vault has implemented it as part of their Transform engine, but it's expensive. For a commercial implementation of tokenization, I do recommend having the crypt be in software that meets all your compliance requirements. Then this code is just application code!
 
-# What is this?
+## What is this?
 This is a simple layer on top of CapitolOne's FF3 algorithm built in Golang. It Enforces input data for Encryption to be numeric, and validates the Decrypted data is numeric. The advantage of this is users and systems can now identify whether or not something is a token (all letters), versus a credit card number (all numbers). Since this is format preserving encryption, the encrypted token fits in the same space as the input data. This allows you to keep the input data as close to source of truth as possible (especially when dealing with fixed with data formats).
 
 ## Examples:
