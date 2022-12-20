@@ -213,6 +213,31 @@ func BenchmarkEncrypt(b *testing.B) {
 	}
 }
 
+func BenchmarkEncrypt0(b *testing.B) {
+
+	testVector := testVectors[0]
+	key, err := hex.DecodeString(testVector.key)
+	if err != nil {
+		b.Fatalf("Unable to decode hex key: %v", testVector.key)
+	}
+
+	tweak, err := hex.DecodeString(testVector.tweak)
+	if err != nil {
+		b.Fatalf("Unable to decode tweak: %v", testVector.tweak)
+	}
+
+	ff3, err := NewCipher(key, tweak)
+	if err != nil {
+		b.Fatalf("Unable to create cipher: %v", err)
+	}
+
+	b.Run(fmt.Sprintf("Sample%d", 0), func(b *testing.B) {
+		for n := 0; n < b.N; n++ {
+			ff3.Encrypt(testVector.plaintext)
+		}
+	})
+}
+
 func BenchmarkDecrypt(b *testing.B) {
 	for idx, testVector := range testVectors {
 		sampleNumber := idx + 1
