@@ -1,7 +1,7 @@
 ![GitHub CI](https://github.com/bdw666/ff3Token/actions/workflows/go.yaml/badge.svg)
 [![Go Reference](https://pkg.go.dev/badge/github.com/bdw666/ff3Token.svg)](https://pkg.go.dev/github.com/bdw666/ff3Token)
 
-# FF3Tokkens 
+# FF3Token 
 
 This is a thin layer on top of https://github.com/capitalone/fpe to make encrypted data and decrypted data not share the same dictionary so it's obvious which is encrypted and what is decrypted data. Since FF3 will produce perfectly fine looking decrypted data this provides a layer. The original design for this was done for PCI compliance to minimize the impact of the rest of the system in scope for a PCI audit. (Credit card numbers were the primary use cases, but it can be used for social security numbers, account numbers, or any other data you need to encrypt in place)
 
