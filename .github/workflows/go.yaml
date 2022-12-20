@@ -18,7 +18,9 @@ jobs:
         run: go build -v ./...
 
       - name: Test
-        run: | 
-          go test -v -coverprofile=coverage.out ./...
-          go tool cover -func cover.out
+        run: go test -v -coverprofile=coverage.out ./...
 
+      - name: Coverage output
+        run: go tool cover -func cover.out
+        with:
+          filename: cover.out
