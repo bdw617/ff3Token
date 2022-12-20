@@ -1,3 +1,6 @@
+// This test package was dervived from https://github.com/capitalone/fpe/blob/master/ff3/ff3_test.go
+// It made sense that it uses it, since this is just a layer on top of it,
+// I've added additional error checking since the ff3Token has both input to encrypt and output to decrypt requirements
 package ff3Token
 
 import (
@@ -9,10 +12,12 @@ import (
 // Test vectors taken from here: http://csrc.nist.gov/groups/ST/toolkit/documents/Examples/FF3samples.pdf
 
 type testVector struct {
-	key        string
-	tweak      string
-	plaintext  string
-	ciphertext string
+	key          string
+	tweak        string
+	plaintext    string
+	ciphertext   string
+	encryptError string
+	decryptError string
 }
 
 var testVectors = []testVector{
@@ -23,12 +28,55 @@ var testVectors = []testVector{
 		"D8E7920AFA330A73",
 		"4147000000001234", // simulated Visa card
 		"WIrhsWqFLLbFPWpb",
+		"", "",
 	},
 	{
 		"EF4359D8D580AA4F7F036D6F04FC6A93",
 		"D8E7920AFA330A73",
 		"4147000000001234", // simulated Visa card
 		"IjKelwlRMiqljyYq",
+		"", "",
+	},
+	{
+		"EF4359D8D580AA4F7F036D6F04FC6A93",
+		"D8E7920AFA330A73",
+		"414700000000123x", // invalid input data this "CC number" has a letter in it
+		"IjKelwlRMiqljyYx",
+		"invalid input sent to Encrypt (must be numeric)",
+		"Decrypt failed to produce numeric output",
+	},
+	// test empty string (actual error comes from the FF3 lib, ff3token in theory shouldn't care, )
+	{
+		"EF4359D8D580AA4F7F036D6F04FC6A93",
+		"D8E7920AFA330A73",
+		"",
+		"",
+		"message length is not within min and max bounds",
+		"message length is not within min and max bounds",
+	},
+	{
+		"",
+		"",
+		"",
+		"",
+		"key length must be 128, 192, or 256 bits",
+		"key length must be 128, 192, or 256 bits",
+	},
+	{
+		"EF4359D8D580AA4F7F036D6F04FC6A93",
+		"",
+		"",
+		"",
+		"tweak must be 8 bytes, or 64 bits",
+		"tweak must be 8 bytes, or 64 bits",
+	},
+	{
+		"EF4359D8D580AA4F7F036D6F04FC6A94",
+		"D8E7920AFA330A73",
+		"4",
+		"W",
+		"message length is not within min and max bounds",
+		"message length is not within min and max bounds",
 	},
 }
 
@@ -38,21 +86,33 @@ func TestEncrypt(t *testing.T) {
 		t.Run(fmt.Sprintf("Sample%d", sampleNumber), func(t *testing.T) {
 			key, err := hex.DecodeString(testVector.key)
 			if err != nil {
+				if testVector.encryptError == err.Error() {
+					return
+				}
 				t.Fatalf("Unable to decode hex key: %v", testVector.key)
 			}
 
 			tweak, err := hex.DecodeString(testVector.tweak)
 			if err != nil {
+				if testVector.encryptError == err.Error() {
+					return
+				}
 				t.Fatalf("Unable to decode tweak: %v", testVector.tweak)
 			}
 
-			ff3, err := NewCipher(key, tweak)
+			cipher, err := NewCipher(key, tweak)
 			if err != nil {
+				if testVector.encryptError == err.Error() {
+					return
+				}
 				t.Fatalf("Unable to create cipher: %v", err)
 			}
 
-			ciphertext, err := ff3.Encrypt(testVector.plaintext)
+			ciphertext, err := cipher.Encrypt(testVector.plaintext)
 			if err != nil {
+				if testVector.encryptError == err.Error() {
+					return
+				}
 				t.Fatalf("%v", err)
 			}
 
@@ -69,21 +129,33 @@ func TestDecrypt(t *testing.T) {
 		t.Run(fmt.Sprintf("Sample%d", sampleNumber), func(t *testing.T) {
 			key, err := hex.DecodeString(testVector.key)
 			if err != nil {
+				if testVector.encryptError == err.Error() {
+					return
+				}
 				t.Fatalf("Unable to decode hex key: %v", testVector.key)
 			}
 
 			tweak, err := hex.DecodeString(testVector.tweak)
 			if err != nil {
+				if testVector.encryptError == err.Error() {
+					return
+				}
 				t.Fatalf("Unable to decode tweak: %v", testVector.tweak)
 			}
 
 			ff3, err := NewCipher(key, tweak)
 			if err != nil {
+				if testVector.encryptError == err.Error() {
+					return
+				}
 				t.Fatalf("Unable to create cipher: %v", err)
 			}
 
 			plaintext, err := ff3.Decrypt(testVector.ciphertext)
 			if err != nil {
+				if testVector.decryptError == err.Error() {
+					return
+				}
 				t.Fatalf("%v", err)
 			}
 
@@ -181,6 +253,31 @@ func BenchmarkEncrypt(b *testing.B) {
 			}
 		})
 	}
+}
+
+func BenchmarkEncrypt0(b *testing.B) {
+
+	testVector := testVectors[0]
+	key, err := hex.DecodeString(testVector.key)
+	if err != nil {
+		b.Fatalf("Unable to decode hex key: %v", testVector.key)
+	}
+
+	tweak, err := hex.DecodeString(testVector.tweak)
+	if err != nil {
+		b.Fatalf("Unable to decode tweak: %v", testVector.tweak)
+	}
+
+	ff3, err := NewCipher(key, tweak)
+	if err != nil {
+		b.Fatalf("Unable to create cipher: %v", err)
+	}
+
+	b.Run(fmt.Sprintf("Sample%d", 0), func(b *testing.B) {
+		for n := 0; n < b.N; n++ {
+			ff3.Encrypt(testVector.plaintext)
+		}
+	})
 }
 
 func BenchmarkDecrypt(b *testing.B) {
