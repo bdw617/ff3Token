@@ -1,10 +1,12 @@
 ![GitHub CI](https://github.com/bdw666/ff3Token/actions/workflows/go.yaml/badge.svg)
 [![Go Reference](https://pkg.go.dev/badge/github.com/bdw666/ff3Token.svg)](https://pkg.go.dev/github.com/bdw666/ff3Token)
 
-#ff3Tokens!
+# FF3Tokkens 
 
-## disclaimer
-This is NOT general purpose cryptography, the data to be encrypted with this algorithm is one of many things good engineering should do to properly secure user data. I'm not a cryptographerm and have no experience with crytoanalysis. If you choose to follow this pattern, that's exciting, please let me know! Please do it with the proper experts to review your design (I probably should use the apache license for this, you know, AS IS). 
+This is a thin layer on top of https://github.com/capitalone/fpe to make encrypted data and decrypted data not share the same dictionary so it's obvious which is encrypted and what is decrypted data. Since FF3 will produce perfectly fine looking decrypted data this provides a layer. The original design for this was done for PCI compliance to minimize the impact of the rest of the system in scope for a PCI audit. (Credit card numbers were the primary use cases, but it can be used for social security numbers, account numbers, or any other data you need to encrypt in place)
+
+## Disclaimer
+This is NOT general purpose cryptography, the data to be encrypted with this algorithm is one of many things good engineering should do to properly secure user data. I'm not a cryptographer and have not performed signifiicant crytoanalysis on the algorithm. If you choose to follow this pattern, that's exciting, please let me know! Please do it with the proper experts to review your design. 
 
 ## note on FF3
 FF3-1 would have been the prefered algorithm but there's no open source in Golang I can find, Hashicorp vault has implemented it as part of their Transform engine, but it's expensive. For a commercial implementation of tokenization, I do recommend having the crypt be in software that meets all your compliance requirements. Then this code is just application code!
