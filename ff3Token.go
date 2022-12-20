@@ -12,13 +12,14 @@ type Cipher struct {
 }
 
 // NewCipher initializes a new FF3 Token Cipher for encryption or decryption use key and tweak parameters.
-// Radix is not exposed, since for this algorithm it must be 52 (a-zA-Z)
+// Radix is not exposed, since for this algorithm it must be 52 [a-zA-Z]
 func NewCipher(key []byte, tweak []byte) (Cipher, error) {
 	cipher, err := ff3.NewCipher(52, key, tweak)
 	return Cipher{ff3Cipher: cipher}, err
 }
 
-// Encrypt is a wrapper around ff3.Encrypt, but transforms the output to make sure it is only Alpha (not numeric)
+// Encrypt is a wrapper around ff3.Encrypt, input must be Numeric
+// Transforms the output to make sure it is only letters [A-Za-z]+
 func (c Cipher) Encrypt(X string) (string, error) {
 	if !isNumeric(X) {
 		return "", errors.New("invalid input sent to Encrypt (must be numeric)")

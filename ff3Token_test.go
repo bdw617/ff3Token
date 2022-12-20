@@ -54,6 +54,30 @@ var testVectors = []testVector{
 		"message length is not within min and max bounds",
 		"message length is not within min and max bounds",
 	},
+	{
+		"",
+		"",
+		"",
+		"",
+		"key length must be 128, 192, or 256 bits",
+		"key length must be 128, 192, or 256 bits",
+	},
+	{
+		"EF4359D8D580AA4F7F036D6F04FC6A93",
+		"",
+		"",
+		"",
+		"tweak must be 8 bytes, or 64 bits",
+		"tweak must be 8 bytes, or 64 bits",
+	},
+	{
+		"EF4359D8D580AA4F7F036D6F04FC6A94",
+		"D8E7920AFA330A73",
+		"4",
+		"W",
+		"message length is not within min and max bounds",
+		"message length is not within min and max bounds",
+	},
 }
 
 func TestEncrypt(t *testing.T) {
@@ -62,16 +86,25 @@ func TestEncrypt(t *testing.T) {
 		t.Run(fmt.Sprintf("Sample%d", sampleNumber), func(t *testing.T) {
 			key, err := hex.DecodeString(testVector.key)
 			if err != nil {
+				if testVector.encryptError == err.Error() {
+					return
+				}
 				t.Fatalf("Unable to decode hex key: %v", testVector.key)
 			}
 
 			tweak, err := hex.DecodeString(testVector.tweak)
 			if err != nil {
+				if testVector.encryptError == err.Error() {
+					return
+				}
 				t.Fatalf("Unable to decode tweak: %v", testVector.tweak)
 			}
 
 			cipher, err := NewCipher(key, tweak)
 			if err != nil {
+				if testVector.encryptError == err.Error() {
+					return
+				}
 				t.Fatalf("Unable to create cipher: %v", err)
 			}
 
@@ -96,16 +129,25 @@ func TestDecrypt(t *testing.T) {
 		t.Run(fmt.Sprintf("Sample%d", sampleNumber), func(t *testing.T) {
 			key, err := hex.DecodeString(testVector.key)
 			if err != nil {
+				if testVector.encryptError == err.Error() {
+					return
+				}
 				t.Fatalf("Unable to decode hex key: %v", testVector.key)
 			}
 
 			tweak, err := hex.DecodeString(testVector.tweak)
 			if err != nil {
+				if testVector.encryptError == err.Error() {
+					return
+				}
 				t.Fatalf("Unable to decode tweak: %v", testVector.tweak)
 			}
 
 			ff3, err := NewCipher(key, tweak)
 			if err != nil {
+				if testVector.encryptError == err.Error() {
+					return
+				}
 				t.Fatalf("Unable to create cipher: %v", err)
 			}
 
