@@ -22,7 +22,7 @@ type testVector struct {
 
 var testVectors = []testVector{
 	// simple change in the key, creates a completely different token,
-	// this simulates multiple enviornments that can have completely different tokens even if they encrypted the exact same data.
+	// this simulates multiple environments that can have completely different tokens even if they encrypted the exact same data.
 	{
 		"EF4359D8D580AA4F7F036D6F04FC6A94",
 		"D8E7920AFA330A73",
