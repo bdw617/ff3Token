@@ -6,6 +6,7 @@ package ff3Token
 import (
 	"encoding/hex"
 	"fmt"
+	_ "net/http/pprof"
 	"testing"
 )
 
@@ -25,21 +26,21 @@ var testVectors = []testVector{
 	// this simulates multiple environments that can have completely different tokens even if they encrypted the exact same data.
 	{
 		"EF4359D8D580AA4F7F036D6F04FC6A94",
-		"D8E7920AFA330A73",
+		"D8E7920AFA330A",
 		"4147000000001234", // simulated Visa card
-		"WIrhsWqFLLbFPWpb",
+		"yinTttUBsMhDMLPh",
 		"", "",
 	},
 	{
 		"EF4359D8D580AA4F7F036D6F04FC6A93",
-		"D8E7920AFA330A73",
+		"D8E7920AFA330A",
 		"4147000000001234", // simulated Visa card
-		"IjKelwlRMiqljyYq",
+		"uLEzwJuxwTSpsNlE",
 		"", "",
 	},
 	{
 		"EF4359D8D580AA4F7F036D6F04FC6A93",
-		"D8E7920AFA330A73",
+		"D8E7920AFA330A",
 		"414700000000123x", // invalid input data this "CC number" has a letter in it
 		"IjKelwlRMiqljyYx",
 		"invalid input sent to Encrypt (must be numeric)",
@@ -48,35 +49,35 @@ var testVectors = []testVector{
 	// test empty string (actual error comes from the FF3 lib, ff3token in theory shouldn't care, )
 	{
 		"EF4359D8D580AA4F7F036D6F04FC6A93",
-		"D8E7920AFA330A73",
+		"D8E7920AFA330A",
 		"",
 		"",
-		"message length is not within min and max bounds",
-		"message length is not within min and max bounds",
+		"invalid text length",
+		"invalid text length",
 	},
 	{
 		"",
 		"",
 		"",
 		"",
-		"key length must be 128, 192, or 256 bits",
-		"key length must be 128, 192, or 256 bits",
+		"invalid tweak length",
+		"invalid tweak length",
 	},
 	{
 		"EF4359D8D580AA4F7F036D6F04FC6A93",
 		"",
 		"",
 		"",
-		"tweak must be 8 bytes, or 64 bits",
-		"tweak must be 8 bytes, or 64 bits",
+		"invalid tweak length",
+		"invalid tweak length",
 	},
 	{
 		"EF4359D8D580AA4F7F036D6F04FC6A94",
-		"D8E7920AFA330A73",
+		"D8E7920AFA330A",
 		"4",
 		"W",
-		"message length is not within min and max bounds",
-		"message length is not within min and max bounds",
+		"invalid text length",
+		"invalid text length",
 	},
 }
 
@@ -174,7 +175,7 @@ func ExampleCipher_Encrypt() {
 	if err != nil {
 		panic(err)
 	}
-	tweak, err := hex.DecodeString("D8E7920AFA330A73")
+	tweak, err := hex.DecodeString("D8E7920AFA330A")
 	if err != nil {
 		panic(err)
 	}
@@ -194,7 +195,7 @@ func ExampleCipher_Encrypt() {
 	}
 
 	fmt.Println(ciphertext)
-	// Output: OOGkpxFEKMmCufxYul
+	// Output: YgzAwpwEZRxYQvZiEW
 }
 
 // Note: panic(err) is just used for example purposes.
@@ -205,7 +206,7 @@ func ExampleCipher_Decrypt() {
 	if err != nil {
 		panic(err)
 	}
-	tweak, err := hex.DecodeString("D8E7920AFA330A73")
+	tweak, err := hex.DecodeString("D8E7920AFA330A")
 	if err != nil {
 		panic(err)
 	}
@@ -216,7 +217,7 @@ func ExampleCipher_Decrypt() {
 		panic(err)
 	}
 
-	ciphertext := "OOGkpxFEKMmCufxYul"
+	ciphertext := "YgzAwpwEZRxYQvZiEW"
 
 	plaintext, err := FF3.Decrypt(ciphertext)
 	if err != nil {
@@ -230,24 +231,23 @@ func ExampleCipher_Decrypt() {
 func BenchmarkEncrypt(b *testing.B) {
 	for idx, testVector := range testVectors {
 		sampleNumber := idx + 1
+
+		key, err := hex.DecodeString(testVector.key)
+		if err != nil {
+			b.Fatalf("Unable to decode hex key: %v", testVector.key)
+		}
+
+		tweak, err := hex.DecodeString(testVector.tweak)
+		if err != nil {
+			b.Fatalf("Unable to decode tweak: %v", testVector.tweak)
+		}
+
+		ff3, err := NewCipher(key, tweak)
+		if err != nil {
+			b.Fatalf("Unable to create cipher: %v", err)
+		}
+
 		b.Run(fmt.Sprintf("Sample%d", sampleNumber), func(b *testing.B) {
-			key, err := hex.DecodeString(testVector.key)
-			if err != nil {
-				b.Fatalf("Unable to decode hex key: %v", testVector.key)
-			}
-
-			tweak, err := hex.DecodeString(testVector.tweak)
-			if err != nil {
-				b.Fatalf("Unable to decode tweak: %v", testVector.tweak)
-			}
-
-			ff3, err := NewCipher(key, tweak)
-			if err != nil {
-				b.Fatalf("Unable to create cipher: %v", err)
-			}
-
-			b.ResetTimer()
-
 			for n := 0; n < b.N; n++ {
 				ff3.Encrypt(testVector.plaintext)
 			}
