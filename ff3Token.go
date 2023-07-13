@@ -3,7 +3,7 @@ package ff3Token
 import (
 	"errors"
 
-	fpe "github.com/ubiqsecurity/ubiq-fpe-go"
+	fpe "gitlab.com/ubiqsecurity/ubiq-fpe-go"
 )
 
 // this is a wrapper for the ff3 Cipher
@@ -14,10 +14,12 @@ type Cipher struct {
 
 const radixLength = 52
 
+const alphabet = "0123456789abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOP"
+
 // NewCipher initializes a new FF3-1 Token Cipher for encryption or decryption use key and tweak parameters.
 // Radix is not exposed, since for this algorithm it must be 52 [a-zA-Z]
 func NewCipher(key []byte, tweak []byte) (Cipher, error) {
-	cipher, err := fpe.NewFF3_1(key, tweak, radixLength)
+	cipher, err := fpe.NewFF3_1(key, tweak, radixLength, alphabet)
 	return Cipher{cipher: cipher, tweak: tweak}, err
 }
 
